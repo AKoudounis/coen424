@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # Checkout the code from the repo
 
       - name: Set up Python version
         uses: actions/setup-python@v1
         with:
-          python-version: '3.12'
+          python-version: '3.12'  # Use Python 3.12 (ensure your app is compatible)
 
       - name: Create and start virtual environment
         run: |
@@ -28,9 +28,12 @@ jobs:
           source venv/bin/activate
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          source venv/bin/activate  # Ensure you're using the virtual environment
+          pip install --upgrade pip  # Upgrade pip
+          pip install -r requirements.txt  # Install the required dependencies
 
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+      # Optional: Add step to run tests here (PyTest, etc.)
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
@@ -65,3 +68,4 @@ jobs:
           app-name: 'frauddetector424'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_242DA8A2258A4CC3950383891EF1E964 }}
+
