@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for
 import pandas as pd
 import os
+import mlflow
+import mlflow.pyfunc
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Load the model from Databricks
+model_path = "/dbfs/models/fraud_detection_model"  # Update this if needed
+model = mlflow.pyfunc.load_model(model_path)
 
 # Ensure upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -35,12 +41,22 @@ def upload_file():
 
         return render_template('result.html', result=result)
 
-# Fraud detection function (replace with your own logic)
+# Fraud detection function using the ML model
 def detect_fraud(file_path):
-    # Example: Load CSV and check if any transaction amount is > $1000 (simple logic)
+    # Load the data
     df = pd.read_csv(file_path)
-    frauds = df[df['Amount'] > 1000]  # Simple example logic for detecting "fraud"
-    
+
+    # Prepare data for the model (ensure the columns match your model's expected input)
+    # You may need to preprocess the DataFrame as per your model's requirements.
+    # For example, if your model expects specific features:
+    # df = df[['Feature1', 'Feature2', 'FeatureN']]
+
+    # Make predictions
+    predictions = model.predict(df)
+
+    # Interpret predictions (assuming binary classification for fraud detection)
+    frauds = df[predictions == 1]  # Adjust this based on how your model outputs predictions
+
     if frauds.empty:
         return "No fraudulent transactions detected."
     else:
