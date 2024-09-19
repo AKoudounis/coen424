@@ -46,5 +46,6 @@ def detect_fraud(file_path):
     else:
         return f"Fraudulent transactions detected: {frauds.shape[0]}"
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host='0.0.0.0', port=port)
