@@ -1,20 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for
-import pandas as pd
+from azure.storage.blob import BlobServiceClient
 import os
 import mlflow
 import mlflow.pyfunc
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Azure Blob Storage configuration
+AZURE_CONNECTION_STRING = "your_connection_string"
+AZURE_CONTAINER_NAME = "your_container_name"
+blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
+container_client = blob_service_client.get_container_client(AZURE_CONTAINER_NAME)
 
 # Load the model from Databricks
-model_path = "/dbfs/models/fraud_detection_model"  # Update this if needed
+model_path = "/dbfs/models/fraud_detection_model"
 model = mlflow.pyfunc.load_model(model_path)
-
-# Ensure upload folder exists
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
 
 # Route for the homepage
 @app.route('/')
@@ -33,30 +33,27 @@ def upload_file():
         return 'No selected file'
     
     if file:
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)
+        # Upload to Azure Blob Storage
+        blob_client = container_client.get_blob_client(file.filename)
+        blob_client.upload_blob(file.read(), overwrite=True)
 
-        # Process the uploaded file for fraud detection
-        result = detect_fraud(file_path)
+        # Call the fraud detection function
+        result = detect_fraud(file.filename)
 
         return render_template('result.html', result=result)
 
-# Fraud detection function using the ML model
-def detect_fraud(file_path):
-    # Load the data
-    df = pd.read_csv(file_path)
+# Fraud detection function (replace with your own logic)
+def detect_fraud(file_name):
+    # Load the data from Azure Blob Storage for processing
+    download_file_path = f"/tmp/{file_name}"
+    with open(download_file_path, "wb") as download_file:
+        blob_client = container_client.get_blob_client(file_name)
+        download_file.write(blob_client.download_blob().readall())
 
-    # Prepare data for the model (ensure the columns match your model's expected input)
-    # You may need to preprocess the DataFrame as per your model's requirements.
-    # For example, if your model expects specific features:
-    # df = df[['Feature1', 'Feature2', 'FeatureN']]
-
-    # Make predictions
-    predictions = model.predict(df)
-
-    # Interpret predictions (assuming binary classification for fraud detection)
-    frauds = df[predictions == 1]  # Adjust this based on how your model outputs predictions
-
+    # Process the downloaded file
+    df = pd.read_csv(download_file_path)
+    frauds = df[df['Amount'] > 1000]  # Example logic
+    
     if frauds.empty:
         return "No fraudulent transactions detected."
     else:
