@@ -6,10 +6,12 @@
     <title>Upload CSV</title>
 </head>
 <body>
-    <h1>Upload CSV File</h1>
+    <h1>Upload Transaction CSV</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">CSV File:</label>
         <input type="file" name="file" accept=".csv" required>
-        <button type="submit">Upload</button>
+        <br>
+        <input type="submit" value="Upload">
     </form>
 </body>
 </html>
