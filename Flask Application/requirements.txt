@@ -2,4 +2,5 @@ Flask
 pandas
 azure-cosmos
 pyspark
+gunicorn
 python-dotenv
