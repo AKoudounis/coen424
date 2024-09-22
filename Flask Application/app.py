@@ -28,4 +28,4 @@ container = cosmos_client.get_database_client(database_name).get_container_clien
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
