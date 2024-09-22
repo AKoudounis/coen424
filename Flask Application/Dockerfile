@@ -13,8 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Define environment variable
-ENV NAME World
-
-# Run the application
+# Run the application using Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
