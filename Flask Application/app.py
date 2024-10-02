@@ -3,7 +3,6 @@ import pandas as pd
 from azure.cosmos import CosmosClient
 import os
 from dotenv import load_dotenv
-import uuid
 
 # Load environment variables from .env file
 load_dotenv()
